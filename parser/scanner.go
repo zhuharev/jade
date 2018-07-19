@@ -265,13 +265,13 @@ func (s *scanner) scanIndent() *token {
 
 			if c == ' ' {
 				spaceCnt++
-				if spaceCnt == 4 {
-					expr += "(\\t|[ ]{4})"
+				if spaceCnt == 2 {
+					expr += "(\\t|[ ]{2})"
 					spaceCnt = 0
 				}
 			}
 			if c == '\t' {
-				expr += "(\\t|[ ]{4})"
+				expr += "(\\t|[ ]{2})"
 			}
 		}
 
@@ -447,12 +447,12 @@ func (s *scanner) scanAttribute() *token {
 					}
 
 					if isExpression {
-                        if sm[2] == "=" {
-                            attributeList = append(attributeList, &token{tokAttribute, sm[1], map[string]string{"Content": s.buffer[:i], "Mode": "expression", "Condition": ""}, nil})
-                        } else {
-                            attributeList = append(attributeList, &token{tokAttribute, sm[1], map[string]string{"Content": "", "Mode": "raw", "Condition": ""}, nil})
-                            i = 0
-                        }
+						if sm[2] == "=" {
+							attributeList = append(attributeList, &token{tokAttribute, sm[1], map[string]string{"Content": s.buffer[:i], "Mode": "expression", "Condition": ""}, nil})
+						} else {
+							attributeList = append(attributeList, &token{tokAttribute, sm[1], map[string]string{"Content": "", "Mode": "raw", "Condition": ""}, nil})
+							i = 0
+						}
 
 					} else {
 						var value string

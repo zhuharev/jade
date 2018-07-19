@@ -5,7 +5,6 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
-	"github.com/go-floki/jade/parser"
 	"go/ast"
 	gp "go/parser"
 	gt "go/token"
@@ -18,6 +17,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/zhuharev/jade/parser"
 )
 
 var builtinFunctions = [...]string{
@@ -82,8 +83,8 @@ type Options struct {
 	// Default: false
 	LineNumbers bool
 
-    // Custom functions
-    Funcs template.FuncMap
+	// Custom functions
+	Funcs template.FuncMap
 }
 
 // Used to provide options to directory compilation
@@ -186,7 +187,7 @@ func (c *Compiler) Parse(input string) (err error) {
 	}()
 
 	parser, err := parser.StringParser(input)
-    parser.FileName(c.filename)
+	parser.FileName(c.filename)
 
 	if err != nil {
 		return
@@ -552,19 +553,19 @@ func (c *Compiler) visitRawInterpolation(value string) string {
 	value = strings.Replace(value, "$", "__DOLLAR__", -1)
 	expr, err := gp.ParseExpr(value)
 
-    if err != nil {
-        // dumb hack to parse single-quoted strings
-        valueLen := len(value)
-        bValue := []byte(value)
-        if bValue[0] == '\'' && bValue[valueLen - 1] == '\'' {
-            bValue[0] = '"'
-            bValue[valueLen - 1] = '"'
-            expr, err = gp.ParseExpr(string(bValue))
-        }
-    }
+	if err != nil {
+		// dumb hack to parse single-quoted strings
+		valueLen := len(value)
+		bValue := []byte(value)
+		if bValue[0] == '\'' && bValue[valueLen-1] == '\'' {
+			bValue[0] = '"'
+			bValue[valueLen-1] = '"'
+			expr, err = gp.ParseExpr(string(bValue))
+		}
+	}
 
 	if err != nil {
-        panic(fmt.Sprintf("Unable to parse expression: %s", value))
+		panic(fmt.Sprintf("Unable to parse expression: %s", value))
 	}
 
 	value = strings.Replace(c.visitExpression(expr), "__DOLLAR__", "$", -1)
@@ -572,13 +573,13 @@ func (c *Compiler) visitRawInterpolation(value string) string {
 }
 
 func (c *Compiler) hasFunctionWithName(name string) bool {
-    if _, inCustom := c.Options.Funcs[name]; inCustom {
-        return true
-    } else if _, inRuntime := FuncMap[name]; inRuntime {
-        return true
-    }
+	if _, inCustom := c.Options.Funcs[name]; inCustom {
+		return true
+	} else if _, inRuntime := FuncMap[name]; inRuntime {
+		return true
+	}
 
-    return false
+	return false
 }
 
 func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
@@ -605,16 +606,16 @@ func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
 				exec(be.Y)
 				exec(be.X)
 
-                name := c.tempvar()
+				name := c.tempvar()
 
-                switch be.Op {
-                    case gt.OR:
-                    c.write(`{{` + name + ` := ` + pop() + ` | ` + pop() + `}}`)
-                    stack.PushFront(name)
-                    return
-                }
+				switch be.Op {
+				case gt.OR:
+					c.write(`{{` + name + ` := ` + pop() + ` | ` + pop() + `}}`)
+					stack.PushFront(name)
+					return
+				}
 
-                negate := false
+				negate := false
 				c.write(`{{` + name + ` := `)
 
 				switch be.Op {
@@ -702,11 +703,11 @@ func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
 				case "nil":
 					stack.PushFront(rname)
 				default:
-                    if c.hasFunctionWithName(rname) {
-                        stack.PushFront(rname)
-                    } else {
-                        stack.PushFront(`.` + rname)
-                    }
+					if c.hasFunctionWithName(rname) {
+						stack.PushFront(rname)
+					} else {
+						stack.PushFront(`.` + rname)
+					}
 				}
 			}
 		case *ast.SelectorExpr:
@@ -733,7 +734,7 @@ func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
 			builtin := false
 
 			if ident, ok := ce.Fun.(*ast.Ident); ok {
-                for _, fname := range builtinFunctions {
+				for _, fname := range builtinFunctions {
 					if fname == ident.Name {
 						builtin = true
 						break
@@ -742,12 +743,12 @@ func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
 			}
 
 			if builtin {
-                // @todo check what's going on here..
+				// @todo check what's going on here..
 				stack.PushFront(ce.Fun.(*ast.Ident).Name)
 				c.write("{{" + name + " := " + pop())
 
 			} else {
-                if se, ok := ce.Fun.(*ast.SelectorExpr); ok {
+				if se, ok := ce.Fun.(*ast.SelectorExpr); ok {
 					exec(se.X)
 					x := pop()
 
@@ -755,7 +756,7 @@ func (c *Compiler) visitExpression(outerexpr ast.Expr) string {
 						x = ""
 					}
 
-                    c.write("{{" + name + " := " + x + "." + se.Sel.Name + " ")
+					c.write("{{" + name + " := " + x + "." + se.Sel.Name + " ")
 
 				} else {
 					exec(ce.Fun)
